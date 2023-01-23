@@ -1,0 +1,10 @@
+homeassistant: true
+permit_join: true
+frontend: true
+mqtt:
+  base_topic: zigbee2mqtt
+  server: mqtt://172.17.0.1
+  user: <MQTT_USER>
+  password: <MQTT_PASSWORD>
+serial:
+  port: /dev/ttyACM0

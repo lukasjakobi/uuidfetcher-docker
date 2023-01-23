@@ -1,0 +1,5 @@
+.idea/
+uuidfetcher.iml
+
+# mosquitto authentication
+/mosquitto/config/password.txt

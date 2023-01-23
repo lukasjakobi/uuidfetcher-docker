@@ -1,0 +1,97 @@
+version: '3.8'
+services:
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt
+    container_name: zigbee2mqtt
+    restart: unless-stopped
+    volumes:
+      - ./zigbee2mqtt/data:/app/data
+      - /run/udev:/run/udev:ro
+    ports:
+      # frontend port
+      - 8080:8080
+    environment:
+      - TZ=Europe/Berlin
+    devices:
+      # sonoff zigbee usb dongle
+      - <YOUR_ZIGBEE_USB_DONGLE_ID>:/dev/ttyACM0
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto:/mosquitto
+    ports:
+      # mqtt port
+      - 1883:1883
+
+  nodered:
+    container_name: nodered
+    image: nodered/node-red
+    restart: unless-stopped
+    ports:
+      # web panel port
+      - "1880:1880/tcp"
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - ./nodered/data:/data
+    depends_on:
+      - homeassistant
+      - mosquitto
+
+  homeassistant:
+    image: homeassistant/home-assistant
+    container_name: homeassistant
+    restart: unless-stopped
+    volumes:
+      - ./homeasistant:/config
+    ports:
+      # web panel port
+      - 8123:8123
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      # postgres port
+      - 5432:5432
+
+  pihole:
+    container_name: pihole
+    image: pihole/pihole
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8081:80/tcp"
+    environment:
+      TZ: 'Europe/Berlin'
+      WEBPASSWORD: 'CHANGE_ME'
+    volumes:
+      - './pihole:/etc/pihole'
+      - './pihole/dnsmasq/dnsmasq.d:/etc/dnsmasq.d'
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    ports:
+      - 9443:9443
+    volumes:
+      - ./portainer/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  uptime-kuma:
+    image: louislam/uptime-kuma
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - 3001:3001
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./uptime-kuma/data:/app/data
